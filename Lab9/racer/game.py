@@ -1,27 +1,20 @@
-# Randomly generating coins with different weights on the road
-# Increase the speed of Enemy when the player earns N coins
-# Comment your code
-
-#Imports
 import pygame, sys
 from pygame.locals import *
 import random, time
 
-#Initialzing 
+
 pygame.init()
 
-#Setting up FPS 
 FPS = 60
 FramePerSec = pygame.time.Clock()
 
-#Creating colors
+
 BLUE  = (0, 0, 255)
 RED   = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-#Other Variables for use in the program
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
 SPEED = 5
@@ -29,14 +22,12 @@ SCORE = 0
 MONEY_SCORE = 0
 earned_coins = 0
 
-#Setting up Fonts
 font = pygame.font.SysFont("Verdana", 60)
 font_small = pygame.font.SysFont("Verdana", 20)
 game_over = font.render("Game Over", True, BLACK)
 
 background = pygame.image.load(r"Lab9\racer\AnimatedStreet.png")
 
-#Create a white screen 
 DISPLAYSURF = pygame.display.set_mode((400,600))
 DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption("Game")
@@ -76,7 +67,7 @@ class Player(pygame.sprite.Sprite):
                   self.rect.move_ip(5, 0)
 
 
-# Yeah that's a comment
+ 
 class Coin(pygame.sprite.Sprite):
     def __init__(self, coin_image, weight):
             super().__init__() 
@@ -96,18 +87,16 @@ class Coin(pygame.sprite.Sprite):
         if (self.rect.bottom > 600):
             self.flag = True
                   
-
-#Setting up Sprites        
+        
 P1 = Player()
 E1 = Enemy()
-C1 = Coin(r"Lab9\racer\Coin.png", 1) # Comment
+C1 = Coin(r"Lab9\racer\Coin.png", 1) 
 C2 = Coin(r"Lab9\racer\Coin2.png", 5)
 
-
-#Creating Sprites Groups
+ 
 enemies = pygame.sprite.Group()
 enemies.add(E1)
-# Some Comments
+ 
 money = pygame.sprite.Group()
 money.add(C1)
 money.add(C2)
@@ -118,7 +107,7 @@ all_sprites = pygame.sprite.Group()
 all_sprites.add(P1)
 all_sprites.add(E1)
 
-#Adding a new User event 
+ 
 INC_SPEED = pygame.USEREVENT + 1
 pygame.time.set_timer(INC_SPEED, 1000)
 
@@ -141,7 +130,7 @@ while True:
     DISPLAYSURF.blit(background, (0,0))
     scores = font_small.render(str(SCORE), True, BLACK)
     DISPLAYSURF.blit(scores, (10,10))
-    # Commented
+ 
     money_score = font_small.render(str(MONEY_SCORE), True, BLACK)
     DISPLAYSURF.blit(money_score, (SCREEN_WIDTH - 50, 10))
 
@@ -182,7 +171,7 @@ while True:
         pygame.quit()
         sys.exit()    
 
-    # Commented
+ 
     
     for entity in money:
         if pygame.Rect.colliderect(entity.rect, P1.rect):

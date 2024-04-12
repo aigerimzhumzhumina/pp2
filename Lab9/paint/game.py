@@ -1,190 +1,165 @@
-import pygame
-
-def getRectangle(x1, y1, x2, y2):
-    x = min(x1, x2)
-    y = min(y1, y2)
-    w = abs(x1-x2)
-    h = abs(y1-y2)
-    return (x, y, w, h)
-
-def getRight(x1, y1, x2, y2):
-    minix, miniy, maxix, maxiy = min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)
-    vertice1 = (minix, miniy) 
-    vertice2 = (minix, maxiy)
-    vertice3 = (maxix, maxiy)
-
-    return (vertice1, vertice2, vertice3)
-
-def getEquil(x1, y1, x2, y2):
-    minix, miniy, maxix, maxiy = min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)
-    vertice1 = (maxix, maxiy) 
-    vertice2 = (minix, maxiy)
-    vertice3 = ((x1 + x2) / 2, maxiy - abs(x1 - x2) * 3**0.5 / 2)
-
-    return (vertice1, vertice2, vertice3)
-
-
-def getSquare(x1, y1, x2, y2):
-    dlinka = max(abs(y2 - y1), abs(x2 - x1))
-
-    x = min(x1, x2)
-    y = min(y1, y2)
-    
-    return (x, y, dlinka, dlinka)
-
-def getRhombus(x1, y1, x2, y2):
-    point1 = ((x1 + x2) / 2, y1)
-    point2 = ((x1 + x2) / 2, y2)
-    point3 = (x1, (y1 + y2) / 2)
-    point4 = (x2, (y1 + y2) / 2)
-
-    return (point1, point3, point2, point4)
-
+import pygame  
 
 pygame.init()
-screen = pygame.display.set_mode((400, 300))
-another_layer = pygame.Surface((400, 300))
 
-done = False
+
+WIDTH = 800
+HEIGHT = 600
+colorWHITE = (255, 255, 255)
+
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+base_layer.fill(colorWHITE)
+screen.fill(colorWHITE)
+pygame.display.set_caption("Paint")
+
+ 
 clock = pygame.time.Clock()
 
-x1 = 10
-y1 = 10
-x2 = 10
-y2 = 10
+ 
+LMBpressed = False
+THICKNESS = 5  
 
-w = 100
-h = 100
-color = (0, 128, 255)
-isMouseDown = False
-screen.fill((0, 0, 0))
-radius = 10
+ 
+currX = 0
+currY = 0
 
-only_once = True
+prevX = 0
+prevY = 0
 
-mode = 'rectangle'
+ 
+mode = "rectangle"
+color_mode = "red"   
 
-objects = []
+ 
+def calculate_rect(x1, y1, x2, y2):
+    return pygame.Rect(min(x1, x2), min(y1, y2), abs(x1 - x2), abs(y1 - y2))
 
-class Button():
-    def __init__(self, x, y, width, height, color, onclickFunction=None):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.onclickFunction = onclickFunction
+ 
+def calculate_equilateral_triangle(x1, y1, x2, y2):
+    side_length = abs(x2 - x1)  
+    height = int(side_length * (3 ** 0.5) / 2)  
+    return ((x1, y1), ((x1 + x2) // 2, y1 - height), (x2, y1))   
 
-        self.fillColor = color
+def draw_rhombus(screen, color, rect):
+    points = [rect.midtop, rect.midright, rect.midbottom, rect.midleft]
+    pygame.draw.polygon(screen, color, points,THICKNESS)  
 
-        self.buttonSurface = pygame.Surface((self.width, self.height))
-        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+ 
+done = False
 
-        objects.append(self)
-    
-    def process(self):
-        mousePos = pygame.mouse.get_pos()
-        self.buttonSurface.fill(self.fillColor)
-        if self.buttonRect.collidepoint(mousePos):
-            if pygame.mouse.get_pressed(num_buttons=3)[0]:
-                self.onclickFunction(self.fillColor)
-        
-        screen.blit(self.buttonSurface, self.buttonRect)
-
-def myFunction(colar):
-    global color
-    color = colar
-
-Button(110,7,15,15, (0,0,0), myFunction) # black
-Button(110,35,15,15, (128, 128, 128), myFunction) #gray
-Button(140,7,15,15, (255,0,0), myFunction) # red
-Button(140,35,15,15, (0,255,0), myFunction) # green
-
-screen.fill('white')
-another_layer.fill('white')
-
+ 
 while not done:
 
-        for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                        done = True
+     
+    pressed = pygame.key.get_pressed()
+    shift_held = pressed[pygame.K_LSHIFT] or pressed[pygame.K_RSHIFT]
 
-                if event.type == pygame.KEYDOWN:
-                    keys = pygame.key.get_pressed()
+    for event in pygame.event.get():
+        if LMBpressed:
+            screen.blit(base_layer, (0, 0))  
+        if event.type == pygame.QUIT:
+            done = True   
 
-                    if not isMouseDown:
-                        if keys[pygame.K_r]:
-                            mode = "rectangle"
-                        
-                        if keys[pygame.K_c]:
-                            mode = "circle"
-                        
-                        if keys[pygame.K_e]:
-                            mode = "eraser"
-                        
-                        if keys[pygame.K_p]:
-                            mode = "pen"
-                        
-                        if keys[pygame.K_s]:
-                            mode = "square"
-                        
-                        if keys[pygame.K_i]:
-                            mode = "right"
-                        
-                        if keys[pygame.K_q]:
-                            mode = "equil"
-                        
-                        if keys[pygame.K_h]:
-                            mode = "rhombus"
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+             
+            LMBpressed = True
+            prevX = event.pos[0]
+            prevY = event.pos[1]
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1: # left click
-                        if only_once:
-                            x1 = event.pos[0]
-                            y1 = event.pos[1]
-                            only_once = False
-                        
-                        if y1 >= 50:
-                            isMouseDown = True
-                    
-                if event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
-                        isMouseDown = False
-                        another_layer.blit(screen, (0, 0))
-                        only_once = True
+        if event.type == pygame.MOUSEMOTION:
+            if LMBpressed:
+                 
+                currX = event.pos[0]
+                currY = event.pos[1]
 
-                        
-                if event.type == pygame.MOUSEMOTION:
-                        if isMouseDown:
-                            x2 = event.pos[0]
-                            y2 = event.pos[1]
+                
+                if mode == "rectangle":
+                    pygame.draw.rect(screen, color_mode, calculate_rect(prevX, prevY, currX, currY), THICKNESS)
+                elif mode == "circle":
+                    pygame.draw.circle(screen, color_mode, (prevX, prevY), abs(currX - prevX), THICKNESS)
+                elif mode == "righttriangle":
+                    pygame.draw.polygon(screen, color_mode, ((prevX, prevY), (prevX, currY), (currX, currY)), THICKNESS)
+                elif mode == "triangle":
+                    pygame.draw.polygon(screen, color_mode, calculate_equilateral_triangle(prevX, prevY, currX, currY), THICKNESS)
+                elif mode == "rhombus":
+                    rect1 = calculate_rect(prevX, prevY, currX, currY)
+                    draw_rhombus(screen, color_mode, rect1)
+                elif mode == "sguare":
+                     
+                    top_left = (min(prevX, currX), min(prevY, currY))
+                    side_length = min(abs(currX - prevX), abs(currY - prevY))
+                     
+                    pygame.draw.rect(screen, color_mode, (top_left[0], top_left[1], side_length, side_length), THICKNESS)
+                elif mode == "eraser":
+                    pygame.draw.circle(screen, (255, 255, 255), (currX, currY), THICKNESS)
+                    base_layer.blit(screen, (0, 0))   
 
-                            if y2 >= 50:
-                                if mode == "rectangle":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.rect(screen, color, pygame.Rect(getRectangle(x1, y1, x2, y2)), 1)
-                                elif mode == "eraser":
-                                    pygame.draw.circle(screen, 'white', (x2, y2), radius)
-                                elif mode == "circle":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.circle(screen, color,((x1 + x2) / 2, (y1 + y2) / 2), max(abs(x1 - x2), abs(y1 - y2)) // 2, 1)
-                                elif mode == "pen":
-                                    pygame.draw.circle(screen,color,(x2, y2), radius)
-                                elif mode == "square":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.rect(screen, color, pygame.Rect(getSquare(x1, y1, x2, y2)), 1)
-                                elif mode == "right":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.polygon(screen, color, getRight(x1, y1, x2, y2), 1)
-                                elif mode == "equil":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.polygon(screen, color, getEquil(x1, y1, x2, y2), 1)
-                                elif mode == "rhombus":
-                                    screen.blit(another_layer, (0, 0))
-                                    pygame.draw.polygon(screen, color, getRhombus(x1, y1, x2, y2), 1)
-        
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            
+            LMBpressed = False
+            currX = event.pos[0]
+            currY = event.pos[1]
 
-        for object in objects:
-            object.process()
-        
-        pygame.display.flip()
-        clock.tick(60)
+            
+            if mode == "rectangle":
+                pygame.draw.rect(screen, color_mode, calculate_rect(prevX, prevY, currX, currY), THICKNESS)
+                base_layer.blit(screen, (0, 0))   
+            elif mode == "circle":
+                pygame.draw.circle(screen, color_mode, (prevX, prevY), abs(currX - prevX), THICKNESS) 
+            elif mode == "righttriangle": 
+                base_layer.blit(screen, (0, 0))  
+                pygame.draw.polygon(screen, color_mode, ((prevX, prevY), (prevX, currY), (currX, currY)), THICKNESS)
+                base_layer.blit(screen, (0, 0))  
+            elif mode == "triangle":
+                pygame.draw.polygon(screen, color_mode, calculate_equilateral_triangle(prevX, prevY, currX, currY), THICKNESS)
+                base_layer.blit(screen, (0, 0)) 
+            elif mode == "rhombus":
+                rect1 = calculate_rect(prevX, prevY, currX, currY)
+                draw_rhombus(screen, color_mode, rect1)
+                base_layer.blit(screen, (0, 0))
+            elif mode == "sguare":
+                а
+                top_left = (min(prevX, currX), min(prevY, currY))
+                side_length = min(abs(currX - prevX), abs(currY - prevY))
+               
+                pygame.draw.rect(screen, color_mode, (top_left[0], top_left[1], side_length, side_length), THICKNESS)
+                base_layer.blit(screen, (0, 0)) 
+
+
+        if event.type == pygame.KEYDOWN:
+            
+            
+            if event.key == pygame.K_ESCAPE:
+                done = True  
+
+            
+            if event.key == pygame.K_c:
+                mode = "circle"
+            if event.key == pygame.K_r:
+                mode = "rectangle"
+            if event.key == pygame.K_t:
+                mode = "righttriangle"
+            if event.key == pygame.K_v:
+                mode = "triangle"
+            if event.key == pygame.K_h:
+                mode = "rhombus"
+            if event.key == pygame.K_e:
+                mode = "eraser"
+            if event.key == pygame.K_s:
+                mode = "sguare"
+
+            
+            if event.key == pygame.K_r and shift_held:
+                color_mode = "red"
+            if event.key == pygame.K_b and shift_held:
+                color_mode = "blue"
+            if event.key == pygame.K_g and shift_held:
+                color_mode = "green"
+            if event.key == pygame.K_k and shift_held:
+                color_mode = "black"
+            
+
+    pygame.display.flip()   
+    clock.tick(10000000)   
